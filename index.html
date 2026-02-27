@@ -122,16 +122,6 @@
                 }).addTo(map);
                 
                 map.setView([userLat, userLon], 14);
-                
-                const nearest = allPlaques
-                    .map(p => ({
-                        ...p,
-                        distance: Math.sqrt(Math.pow(p.lat - userLat, 2) + Math.pow(p.lon - userLon, 2))
-                    }))
-                    .sort((a, b) => a.distance - b.distance)
-                    .slice(0, 10);
-                
-                renderMarkers(nearest);
             }, () => {
                 alert('Unable to retrieve your location');
             });
@@ -239,7 +229,7 @@
                 
                 marker.bindTooltip(`
                     <div class="tooltip-preview">
-                        ${plaque.mainImage ? `<img src="/${plaque.mainImage}" alt="${plaque.title}" onerror="this.style.display='none'">` : ''}
+                        ${plaque.mainImage ? `<img src="${plaque.mainImage}" alt="${plaque.title}" onerror="this.style.display='none'">` : ''}
                         <div class="title">${plaque.title}</div>
                     </div>
                 `, { direction: 'top', offset: [0, -20] });
@@ -250,9 +240,9 @@
                     ${plaque.description ? `<div class="popup-description">${plaque.description}</div>` : ''}
                     ${plaque.categories.length ? `<div class="popup-categories">${plaque.categories.map(c => `<span>${c}</span>`).join('')}</div>` : ''}
                     ${plaque.images.length ? `<div class="popup-images">${plaque.images.map((img, idx) => {
-                        const imgSrc = img.path.startsWith('http') ? img.path : `/${img.path}`;
-                        return `<img src="${imgSrc}" alt="${img.title || plaque.title}" onclick="openLightbox(${JSON.stringify(plaque.images.map(i => ({src: i.path.startsWith('http') ? i.path : `/${i.path}`, title: i.title}))).replace(/"/g, '&quot;')}, ${idx})" title="${img.title || ''}">`;
-                    }).join('')}</div>` : plaque.mainImage ? `<div class="popup-images"><img src="/${plaque.mainImage}" alt="${plaque.title}" onclick="openLightbox([{src: '/${plaque.mainImage}', title: '${plaque.title}'}], 0)"></div>` : ''}
+                        const imgSrc = img.path.startsWith('http') ? img.path : img.path;
+                        return `<img src="${imgSrc}" alt="${img.title || plaque.title}" onclick="openLightbox(${JSON.stringify(plaque.images.map(i => ({src: i.path.startsWith('http') ? i.path : i.path, title: i.title}))).replace(/"/g, '&quot;')}, ${idx})" title="${img.title || ''}">`;
+                    }).join('')}</div>` : plaque.mainImage ? `<div class="popup-images"><img src="${plaque.mainImage}" alt="${plaque.title}" onclick="openLightbox([{src: '${plaque.mainImage}', title: '${plaque.title}'}], 0)"></div>` : ''}
                     ${plaque.url ? `<a href="${plaque.url}" target="_blank" class="popup-link">View on Heritage Portal</a>` : ''}
                 `, { maxWidth: 400 });
 
