@@ -56,9 +56,11 @@ def get_plaques():
     conn.close()
     return jsonify(result)
 
-@app.route('/offline_copy/<path:path>')
-def serve_image(path):
-    return send_from_directory('offline_copy', path)
+@app.route('/static/<path:path>')
+def serve_static(path):
+    return send_from_directory('static', path)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    import os
+    debug = os.getenv('DEBUG', 'False') == 'True'
+    app.run(debug=debug, port=5000)
