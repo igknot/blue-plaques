@@ -1,0 +1,26 @@
+# Development artifacts
+offline_copy/
+_bmad/
+_bmad-output/
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.kiro/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

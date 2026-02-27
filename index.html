@@ -33,6 +33,9 @@
         .popup-categories { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
         .popup-categories span { background: #e0e0e0; padding: 3px 8px; border-radius: 3px; font-size: 12px; }
         .popup-link { color: #0066cc; text-decoration: none; }
+        .popup-report { position: absolute; bottom: 10px; right: 10px; cursor: pointer; font-size: 18px; color: #666; transition: color 0.2s; }
+        .popup-report:hover { color: #ff6b6b; }
+        .leaflet-popup-content { position: relative; padding-bottom: 30px; }
         .tooltip-preview { text-align: center; }
         .tooltip-preview img { width: 150px; height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 5px; }
         .tooltip-preview .title { font-weight: bold; }
@@ -96,6 +99,24 @@
         let currentLightboxImages = [];
         let currentLightboxIndex = 0;
         let userMarker = null;
+
+        function reportPlaque(plaqueId) {
+            if (!confirm('Report this plaque for review?')) return;
+            
+            fetch(`/api/plaques/${plaqueId}/report`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Thank you! This plaque has been marked for review.');
+                    } else {
+                        alert('Failed to report plaque. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error reporting plaque:', error);
+                    alert('Failed to report plaque. Please try again.');
+                });
+        }
 
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
@@ -244,6 +265,7 @@
                         return `<img src="${imgSrc}" alt="${img.title || plaque.title}" onclick="openLightbox(${JSON.stringify(plaque.images.map(i => ({src: i.path.startsWith('http') ? i.path : i.path, title: i.title}))).replace(/"/g, '&quot;')}, ${idx})" title="${img.title || ''}">`;
                     }).join('')}</div>` : plaque.mainImage ? `<div class="popup-images"><img src="${plaque.mainImage}" alt="${plaque.title}" onclick="openLightbox([{src: '${plaque.mainImage}', title: '${plaque.title}'}], 0)"></div>` : ''}
                     ${plaque.url ? `<a href="${plaque.url}" target="_blank" class="popup-link">View on Heritage Portal</a>` : ''}
+                    <span class="popup-report" onclick="reportPlaque(${plaque.id})" title="Report for review">⚠️</span>
                 `, { maxWidth: 400 });
 
                 marker.addTo(map);

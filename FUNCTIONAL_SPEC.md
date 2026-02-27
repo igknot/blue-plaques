@@ -19,7 +19,7 @@ An interactive web application that displays heritage blue plaques on a map, all
 - **Database Tables**:
   - `plaques`: Main plaque information (id, title, url, image_url, location, description, local_image_path, local_html_path, geo_location, address, categories)
   - `plaque_images`: Additional images for each plaque (id, plaque_id, image_url, local_image_path, image_title, image_order)
-- **File Storage**: `offline_copy/` directory containing images and HTML files
+- **File Storage**: `static/` directory containing images and data files
 
 ## Core Features
 
@@ -59,7 +59,7 @@ An interactive web application that displays heritage blue plaques on a map, all
     - Left/Right arrows: Navigate images
     - Escape: Close lightbox
 - **Image Sources**: 
-  - Local files from `offline_copy/images/`
+  - Local files from `static/images/`
   - Fallback to online URLs if local file unavailable
 
 ### 4. Hamburger Menu & Sidebar
@@ -145,9 +145,9 @@ An interactive web application that displays heritage blue plaques on a map, all
     "address": "Street Address",
     "categories": ["Category1", "Category2"],
     "description": "Description text",
-    "mainImage": "offline_copy/images/image.jpg",
+    "mainImage": "static/images/image.jpg",
     "images": [
-      {"path": "offline_copy/images/image1.jpg", "title": "Image Title"},
+      {"path": "static/images/image1.jpg", "title": "Image Title"},
       {"path": "https://example.com/image2.jpg", "title": "Image Title"}
     ],
     "url": "https://heritageportal.co.za/..."
@@ -155,9 +155,9 @@ An interactive web application that displays heritage blue plaques on a map, all
 ]
 ```
 
-### GET /offline_copy/<path:path>
-- Returns: Static file from offline_copy directory
-- Description: Serves local images and HTML files
+### GET /static/<path:path>
+- Returns: Static file from static directory
+- Description: Serves local images and data files
 
 ### GET /favicon.svg
 - Returns: SVG favicon

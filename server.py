@@ -106,6 +106,22 @@ def get_plaques():
 def serve_static(path):
     return send_from_directory('static', path)
 
+@app.route('/api/plaques/<int:plaque_id>/report', methods=['POST'])
+def report_plaque(plaque_id):
+    try:
+        conn = get_db()
+        conn.execute('UPDATE plaques SET to_review = 1 WHERE id = ?', (plaque_id,))
+        conn.commit()
+        conn.close()
+        logger.info(f"Plaque {plaque_id} marked for review")
+        return jsonify({'success': True, 'message': 'Plaque marked for review'})
+    except sqlite3.Error as e:
+        logger.error(f"Database error in report_plaque: {e}")
+        return jsonify({'error': 'Failed to report plaque'}), 500
+    except Exception as e:
+        logger.error(f"Unexpected error in report_plaque: {e}", exc_info=True)
+        return jsonify({'error': 'Failed to report plaque'}), 500
+
 if __name__ == '__main__':
     import os
     debug = os.getenv('DEBUG', 'False') == 'True'
