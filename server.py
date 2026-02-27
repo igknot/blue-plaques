@@ -170,4 +170,4 @@ def add_plaque():
 if __name__ == '__main__':
     import os
     debug = os.getenv('DEBUG', 'False') == 'True'
-    app.run(debug=debug, port=5000)
+    app.run(debug=debug, host='0.0.0.0', port=5000)
