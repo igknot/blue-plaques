@@ -49,6 +49,15 @@
         .lightbox-prev { left: 20px; }
         .lightbox-next { right: 20px; }
         .lightbox-caption { color: white; text-align: center; padding: 10px; font-size: 16px; }
+        .admin-btn { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: #1e3a8a; color: white; border: none; font-size: 30px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000; display: none; }
+        .admin-btn:hover { background: #1e40af; }
+        #addModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 10001; max-width: 400px; width: 90%; }
+        #addModal input, #addModal textarea { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        #addModal button { padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        #addModal .btn-primary { background: #1e3a8a; color: white; }
+        #addModal .btn-secondary { background: #ccc; }
+        #addModal video { width: 100%; margin-bottom: 10px; border-radius: 4px; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; }
     </style>
 </head>
 <body>
@@ -63,6 +72,7 @@
     <div class="sidebar" id="sidebar">
         <input type="text" id="search" placeholder="Search plaques...">
         <button id="findNearMe">📍 Find Near Me</button>
+        <button id="adminLogin">🔐 Admin Login</button>
         <h3>Filter by Category</h3>
         <div style="margin-bottom: 10px;">
             <button id="selectAll">Select All</button>
@@ -91,6 +101,24 @@
         </div>
     </div>
 
+    <button class="admin-btn" id="adminAddBtn" onclick="openAddModal()">+</button>
+
+    <div class="modal-overlay" id="modalOverlay" onclick="closeAddModal()"></div>
+    <div id="addModal">
+        <h3>Add New Plaque</h3>
+        <video id="camera" autoplay playsinline></video>
+        <canvas id="canvas" style="display:none;"></canvas>
+        <button class="btn-primary" onclick="capturePhoto()">📷 Capture Photo</button>
+        <img id="capturedPhoto" style="display:none; width:100%; margin-bottom:10px; border-radius:4px;">
+        <input type="text" id="newTitle" placeholder="Title">
+        <textarea id="newDescription" placeholder="Description" rows="3"></textarea>
+        <input type="text" id="newAddress" placeholder="Address">
+        <input type="text" id="newCategories" placeholder="Categories (comma-separated)">
+        <div style="color:#666; font-size:12px; margin-bottom:10px;">Position: <span id="newPosition">Getting location...</span></div>
+        <button class="btn-primary" onclick="savePlaque()">Save</button>
+        <button class="btn-secondary" onclick="closeAddModal()">Cancel</button>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         let allPlaques = [];
@@ -99,6 +127,9 @@
         let currentLightboxImages = [];
         let currentLightboxIndex = 0;
         let userMarker = null;
+        let isAdmin = false;
+        let cameraStream = null;
+        let newPlaquePosition = null;
 
         function reportPlaque(plaqueId) {
             if (!confirm('Report this plaque for review?')) return;
@@ -246,7 +277,37 @@
             markers = [];
 
             plaques.forEach(plaque => {
-                const marker = L.marker([plaque.lat, plaque.lon]);
+                const marker = L.marker([plaque.lat, plaque.lon], { draggable: isAdmin });
+                
+                if (isAdmin) {
+                    marker.on('dragend', function(e) {
+                        const pos = e.target.getLatLng();
+                        if (confirm('Update plaque position?')) {
+                            fetch(`/api/plaques/${plaque.id}/position`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ lat: pos.lat, lon: pos.lng })
+                            })
+                            .then(r => r.json())
+                            .then(d => {
+                                if (d.success) {
+                                    plaque.lat = pos.lat;
+                                    plaque.lon = pos.lng;
+                                    alert('Position updated');
+                                } else {
+                                    alert('Failed to update position');
+                                    marker.setLatLng([plaque.lat, plaque.lon]);
+                                }
+                            })
+                            .catch(() => {
+                                alert('Error updating position');
+                                marker.setLatLng([plaque.lat, plaque.lon]);
+                            });
+                        } else {
+                            marker.setLatLng([plaque.lat, plaque.lon]);
+                        }
+                    });
+                }
                 
                 marker.bindTooltip(`
                     <div class="tooltip-preview">
@@ -279,6 +340,104 @@
         }
 
         init();
+
+        document.getElementById('adminLogin').addEventListener('click', function() {
+            const pwd = prompt('Admin password:');
+            if (pwd === 'admin123') {
+                isAdmin = true;
+                alert('Admin mode enabled');
+                document.getElementById('adminAddBtn').style.display = 'block';
+                this.textContent = '🔓 Admin Mode';
+                this.style.background = '#16a34a';
+                renderMarkers(allPlaques);
+            } else if (pwd) {
+                alert('Invalid password');
+            }
+        });
+
+        function openAddModal() {
+            document.getElementById('modalOverlay').style.display = 'block';
+            document.getElementById('addModal').style.display = 'block';
+            document.getElementById('capturedPhoto').style.display = 'none';
+            document.getElementById('newTitle').value = '';
+            document.getElementById('newDescription').value = '';
+            document.getElementById('newAddress').value = '';
+            document.getElementById('newCategories').value = '';
+            
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(stream => {
+                    cameraStream = stream;
+                    document.getElementById('camera').srcObject = stream;
+                })
+                .catch(() => alert('Camera access denied'));
+            
+            navigator.geolocation.getCurrentPosition(pos => {
+                newPlaquePosition = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+                document.getElementById('newPosition').textContent = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
+            }, () => {
+                document.getElementById('newPosition').textContent = 'Location unavailable';
+            });
+        }
+
+        function closeAddModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+            document.getElementById('addModal').style.display = 'none';
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('camera');
+            const canvas = document.getElementById('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            const photo = canvas.toDataURL('image/jpeg');
+            document.getElementById('capturedPhoto').src = photo;
+            document.getElementById('capturedPhoto').style.display = 'block';
+            video.style.display = 'none';
+        }
+
+        function savePlaque() {
+            const photo = document.getElementById('capturedPhoto').src;
+            if (!photo || photo === window.location.href) {
+                alert('Please capture a photo first');
+                return;
+            }
+            if (!newPlaquePosition) {
+                alert('Location not available');
+                return;
+            }
+            
+            const data = {
+                title: document.getElementById('newTitle').value,
+                description: document.getElementById('newDescription').value,
+                address: document.getElementById('newAddress').value,
+                categories: document.getElementById('newCategories').value,
+                lat: newPlaquePosition.lat,
+                lon: newPlaquePosition.lon,
+                photo: photo
+            };
+            
+            fetch('/api/plaques', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    alert('Plaque added successfully');
+                    closeAddModal();
+                    location.reload();
+                } else {
+                    alert('Failed to add plaque');
+                }
+            })
+            .catch(() => alert('Error adding plaque'));
+        }
     </script>
 </body>
 </html>

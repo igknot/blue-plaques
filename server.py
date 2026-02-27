@@ -122,6 +122,51 @@ def report_plaque(plaque_id):
         logger.error(f"Unexpected error in report_plaque: {e}", exc_info=True)
         return jsonify({'error': 'Failed to report plaque'}), 500
 
+@app.route('/api/plaques/<int:plaque_id>/position', methods=['PUT'])
+def update_position(plaque_id):
+    try:
+        from flask import request
+        data = request.json
+        geo = json.dumps({'lat': str(data['lat']), 'lon': str(data['lon'])})
+        conn = get_db()
+        conn.execute('UPDATE plaques SET geo_location = ? WHERE id = ?', (geo, plaque_id))
+        conn.commit()
+        conn.close()
+        logger.info(f"Plaque {plaque_id} position updated")
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Error updating position: {e}", exc_info=True)
+        return jsonify({'error': 'Failed to update position'}), 500
+
+@app.route('/api/plaques', methods=['POST'])
+def add_plaque():
+    try:
+        from flask import request
+        import base64
+        data = request.json
+        
+        # Save photo
+        photo_data = data['photo'].split(',')[1]
+        photo_bytes = base64.b64decode(photo_data)
+        photo_path = f"static/uploads/{data['title'].replace(' ', '_')}.jpg"
+        os.makedirs('static/uploads', exist_ok=True)
+        with open(photo_path, 'wb') as f:
+            f.write(photo_bytes)
+        
+        geo = json.dumps({'lat': str(data['lat']), 'lon': str(data['lon'])})
+        conn = get_db()
+        conn.execute('''
+            INSERT INTO plaques (title, description, address, categories, geo_location, local_image_path)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (data['title'], data['description'], data['address'], data['categories'], geo, photo_path))
+        conn.commit()
+        conn.close()
+        logger.info(f"New plaque added: {data['title']}")
+        return jsonify({'success': True})
+    except Exception as e:
+        logger.error(f"Error adding plaque: {e}", exc_info=True)
+        return jsonify({'error': 'Failed to add plaque'}), 500
+
 if __name__ == '__main__':
     import os
     debug = os.getenv('DEBUG', 'False') == 'True'
