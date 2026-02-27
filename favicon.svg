@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="48" fill="#1e3a8a" stroke="#fff" stroke-width="2"/>
+  <circle cx="50" cy="50" r="42" fill="none" stroke="#fff" stroke-width="1.5"/>
+  <text x="50" y="45" font-family="serif" font-size="28" font-weight="bold" fill="#fff" text-anchor="middle">BP</text>
+  <text x="50" y="70" font-family="serif" font-size="12" fill="#fff" text-anchor="middle">HERITAGE</text>
+</svg>
