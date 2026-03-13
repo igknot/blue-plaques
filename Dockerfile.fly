@@ -1,0 +1,49 @@
+# Build stage for frontend
+FROM node:20-alpine AS frontend-build
+WORKDIR /frontend
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
+# Build stage for backend
+FROM python:3.11-slim AS backend-build
+WORKDIR /app
+RUN apt-get update && apt-get install -y \
+    gcc \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Final stage
+FROM python:3.11-slim
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy Python dependencies
+COPY --from=backend-build /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+
+# Copy backend code
+COPY backend/ ./
+
+# Copy frontend build
+COPY --from=frontend-build /frontend/dist ./static
+
+# Copy database
+COPY blue_plaques.db /data/blue_plaques.db
+
+# Create startup script
+RUN echo '#!/bin/sh\n\
+export DATABASE_URL="sqlite:////data/blue_plaques.db"\n\
+export REDIS_URL=""\n\
+export SECRET_KEY="${SECRET_KEY:-$(openssl rand -hex 32)}"\n\
+uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}' > /app/start.sh && \
+chmod +x /app/start.sh
+
+EXPOSE 8080
+CMD ["/app/start.sh"]
