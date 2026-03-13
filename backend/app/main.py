@@ -14,7 +14,7 @@ app = FastAPI(
 # CORS
 allowed_origins = ["*"] if settings.DEBUG else [
     "https://blueplaques.co.za",
-    "https://blue-plaques-frontend.onrender.com"
+    "https://blue-plaques.onrender.com"
 ]
 app.add_middleware(
     CORSMiddleware,

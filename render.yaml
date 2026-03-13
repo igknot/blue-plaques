@@ -23,7 +23,7 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        value: https://blue-plaques-backend.onrender.com
+        value: https://blue-plaques.onrender.com/api/v1
 
 databases:
   - name: blue-plaques-db
