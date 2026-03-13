@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from .api.v1 import router as api_router
 from .config import settings
@@ -20,6 +20,10 @@ Base.metadata.create_all(bind=engine)
 # Static files
 static_dir = Path(__file__).parent.parent / "static"
 static_dir.mkdir(exist_ok=True)
+frontend_dir = static_dir / "frontend"
+
+if frontend_dir.exists():
+    app.mount("/assets", StaticFiles(directory=str(frontend_dir / "assets")), name="assets")
 app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 # CORS
@@ -48,10 +52,13 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 app.include_router(api_router, prefix="/api")
 
-@app.get("/")
-def root():
-    return {"message": "Blue Plaques API v2.0", "status": "operational"}
-
 @app.get("/health")
 def health():
     return {"status": "healthy"}
+
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str):
+    frontend_dir = Path(__file__).parent.parent / "static" / "frontend"
+    if frontend_dir.exists():
+        return FileResponse(frontend_dir / "index.html")
+    return {"message": "Blue Plaques API v2.0", "status": "operational"}
