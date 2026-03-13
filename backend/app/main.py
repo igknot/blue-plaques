@@ -1,15 +1,22 @@
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from .api.v1 import router as api_router
 from .config import settings
 from .middleware.rate_limit import RateLimitMiddleware
+from pathlib import Path
 
 app = FastAPI(
     title="Blue Plaques API",
     description="API for Blue Plaques heritage site discovery platform",
     version="2.0.0"
 )
+
+# Static files
+static_dir = Path(__file__).parent.parent / "static"
+static_dir.mkdir(exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 # CORS
 allowed_origins = ["*"] if settings.DEBUG else [
