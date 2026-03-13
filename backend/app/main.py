@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from .api.v1 import router as api_router
 from .config import settings
 from .middleware.rate_limit import RateLimitMiddleware
+from .database import engine, Base
 from pathlib import Path
 
 app = FastAPI(
@@ -12,6 +13,9 @@ app = FastAPI(
     description="API for Blue Plaques heritage site discovery platform",
     version="2.0.0"
 )
+
+# Create tables
+Base.metadata.create_all(bind=engine)
 
 # Static files
 static_dir = Path(__file__).parent.parent / "static"
