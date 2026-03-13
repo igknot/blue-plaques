@@ -24,6 +24,7 @@ frontend_dir = static_dir / "frontend"
 
 if frontend_dir.exists():
     app.mount("/assets", StaticFiles(directory=str(frontend_dir / "assets")), name="assets")
+    app.mount("/images", StaticFiles(directory=str(frontend_dir / "images")), name="images")
 app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 # CORS
@@ -57,7 +58,11 @@ def health():
     return {"status": "healthy"}
 
 @app.get("/{full_path:path}")
-async def serve_frontend(full_path: str):
+async def serve_frontend(request: Request, full_path: str):
+    # Don't intercept API routes
+    if full_path.startswith("api/"):
+        return JSONResponse(status_code=404, content={"detail": "Not found"})
+    
     frontend_dir = Path(__file__).parent.parent / "static" / "frontend"
     if frontend_dir.exists():
         return FileResponse(frontend_dir / "index.html")
