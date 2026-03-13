@@ -1,6 +1,5 @@
 from sqlalchemy import Column, Integer, String, Text, Float, DateTime, ForeignKey, Table
 from sqlalchemy.orm import relationship
-from geoalchemy2 import Geometry
 from datetime import datetime
 from ..database import Base
 
@@ -20,7 +19,6 @@ class Plaque(Base):
     inscription = Column(Text)
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
-    location = Column(Geometry('POINT', srid=4326))
     address = Column(String(500))
     year_erected = Column(Integer)
     organization = Column(String(255))
