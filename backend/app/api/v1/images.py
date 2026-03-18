@@ -1,13 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from sqlalchemy.orm import Session
-from ...database import get_db
-from ...schemas import ImageResponse, ImageCreate
-from ...models import Plaque, Image
+from ...database import supabase
+from ...schemas import ImageResponse
 from ...services.storage import upload_image, delete_image
 from ...api.deps import get_admin_user
 import uuid
 
 router = APIRouter(prefix="/images", tags=["images"])
+
 
 @router.post("/plaques/{plaque_id}/images", response_model=ImageResponse)
 async def upload_plaque_image(
@@ -16,48 +15,41 @@ async def upload_plaque_image(
     caption: str = None,
     photographer: str = None,
     year_taken: int = None,
-    db: Session = Depends(get_db),
-    current_user = Depends(get_admin_user)
+    current_user=Depends(get_admin_user),
 ):
-    plaque = db.query(Plaque).filter(Plaque.id == plaque_id).first()
-    if not plaque:
+    plaque_resp = supabase.table("plaques").select("id").eq("id", plaque_id).execute()
+    if not plaque_resp.data:
         raise HTTPException(status_code=404, detail="Plaque not found")
-    
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
-    
+
     file_ext = file.filename.split(".")[-1]
     filename = f"{uuid.uuid4()}.{file_ext}"
     file_data = await file.read()
-    
     url = upload_image(file_data, filename, file.content_type)
-    
-    image = Image(
-        plaque_id=plaque_id,
-        url=url,
-        caption=caption,
-        photographer=photographer,
-        year_taken=year_taken,
-        display_order=len(plaque.images)
-    )
-    db.add(image)
-    db.commit()
-    db.refresh(image)
-    return image
+
+    count_resp = supabase.table("images").select("id", count="exact").eq("plaque_id", plaque_id).execute()
+    display_order = count_resp.count or 0
+
+    row = {
+        "plaque_id": plaque_id,
+        "url": url,
+        "caption": caption,
+        "photographer": photographer,
+        "year_taken": year_taken,
+        "display_order": display_order,
+    }
+    result = supabase.table("images").insert(row).execute()
+    return result.data[0]
+
 
 @router.delete("/{image_id}")
-def delete_plaque_image(
-    image_id: int,
-    db: Session = Depends(get_db),
-    current_user = Depends(get_admin_user)
-):
-    image = db.query(Image).filter(Image.id == image_id).first()
-    if not image:
+def delete_plaque_image(image_id: int, current_user=Depends(get_admin_user)):
+    response = supabase.table("images").select("*").eq("id", image_id).execute()
+    if not response.data:
         raise HTTPException(status_code=404, detail="Image not found")
-    
-    filename = image.url.split("/")[-1]
+    image = response.data[0]
+    filename = image["url"].split("/")[-1]
     delete_image(filename)
-    
-    db.delete(image)
-    db.commit()
+    supabase.table("images").delete().eq("id", image_id).execute()
     return {"message": "Image deleted"}

@@ -2,360 +2,222 @@
 
 Interactive web application for discovering and exploring Johannesburg's 386 heritage blue plaques.
 
-![Version](https://img.shields.io/badge/version-1.0-blue)
-![Status](https://img.shields.io/badge/status-prototype-orange)
-![Security](https://img.shields.io/badge/security-needs_hardening-red)
+---
+
+## Technology Stack
+
+- **Backend**: Python 3.13 + FastAPI + Supabase Python Client
+- **Frontend**: React + TypeScript + Vite + Tailwind CSS
+- **Database**: Supabase (PostgreSQL)
+- **Mapping**: Leaflet.js + OpenStreetMap
+- **Cache**: Redis (rate limiting)
 
 ---
 
-## 🎯 Quick Start
+## Quick Start
+
+### Prerequisites
+
+- Python 3.13+
+- Node.js 18+
+- Docker (optional)
+- A [Supabase](https://supabase.com) project
+
+### Docker Compose
 
 ```bash
-# Clone repository
-git clone <repository-url>
-cd blue_plaques
+# Configure environment
+cp backend/.env.example backend/.env
+# Edit backend/.env with your Supabase credentials (see Configuration below)
 
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run development server
-export DEBUG=True  # Optional
-python server.py
-
-# Open browser
-open http://localhost:5000
+# Start all services
+docker compose up -d
 ```
 
----
+Backend runs on `http://localhost:8000`, frontend on `http://localhost:5173`.
 
-## 📖 What Is This?
+### Manual Setup
 
-An interactive map displaying **386 heritage blue plaques** across Johannesburg. Users can:
+#### Backend
 
-- 🗺️ Browse plaques on an interactive map
-- 🔍 Search by title, description, or address
-- 🏷️ Filter by category (Homes, Military, Churches, etc.)
-- 📍 Find nearby plaques using geolocation
-- 🖼️ View image galleries in full-screen lightbox
-- 🔗 Link to Heritage Portal for detailed information
+```bash
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate
 
-**Admin features** (password-protected):
-- ➕ Add new plaques with camera capture
-- 📌 Drag markers to correct positions
-- ⚠️ Review user-reported issues
+# Install dependencies
+pip install -r backend/requirements.txt
 
----
+# Configure environment
+cp backend/.env.example backend/.env
+# Edit backend/.env with your Supabase credentials (see Configuration below)
 
-## 🏗️ Technology Stack
+# Run development server
+cd backend
+python -m uvicorn app.main:app --reload --port 8000
+```
 
-- **Backend**: Python 3.13 + Flask 3.0.3
-- **Database**: SQLite (905KB)
-- **Frontend**: HTML5, CSS3, JavaScript (ES6)
-- **Mapping**: Leaflet.js 1.9.4
-- **Tiles**: OpenStreetMap
-- **Deployment**: Render.com (configured)
+#### Frontend
 
----
+```bash
+cd frontend
+npm install
 
-## 📚 Documentation
+# Configure environment
+cp .env.example .env
+# Edit .env with your values
 
-Comprehensive documentation created by BMAD team analysis:
+# Run development server
+npm run dev
+```
 
-| Document | Description |
-|----------|-------------|
-| **[PROJECT_SUMMARY.md](docs/PROJECT_SUMMARY.md)** | Complete project analysis and assessment |
-| **[USER_GUIDE.md](docs/USER_GUIDE.md)** | How to use the map (for end users) |
-| **[ADMIN_GUIDE.md](docs/ADMIN_GUIDE.md)** | Admin features and moderation |
-| **[API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md)** | Complete API reference |
-| **[TECHNICAL_ARCHITECTURE.md](docs/TECHNICAL_ARCHITECTURE.md)** | System design and architecture |
-| **[IMPROVEMENT_RECOMMENDATIONS.md](docs/IMPROVEMENT_RECOMMENDATIONS.md)** | Prioritized improvements |
-| **[FUNCTIONAL_SPEC.md](FUNCTIONAL_SPEC.md)** | Original functional specification |
-| **[URGENT_FIXES.md](URGENT_FIXES.md)** | Security fixes applied |
+The frontend runs on `http://localhost:5173` and proxies API requests to the backend on `http://localhost:8000`.
 
 ---
 
-## ⚠️ Security Warning
+## Configuration
 
-**🚨 NOT PRODUCTION-READY 🚨**
+### Backend (`backend/.env`)
 
-This prototype has **critical security vulnerabilities**:
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `SUPABASE_URL` | Yes | Your Supabase project URL (e.g. `https://xxxxx.supabase.co`) |
+| `SUPABASE_ANON_KEY` | Yes | Your Supabase anon/public key |
+| `SECRET_KEY` | Yes | JWT signing key (min 32 chars) |
+| `ALGORITHM` | No | JWT algorithm (default: `HS256`) |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | No | Token expiry (default: `30`) |
+| `REDIS_URL` | No | Redis URL for rate limiting (default: empty) |
+| `DEBUG` | No | Enable debug mode / permissive CORS (default: `True`) |
 
-- ❌ Hardcoded admin password in client-side JavaScript
-- ❌ No server-side authentication
-- ❌ No input validation
-- ❌ No rate limiting
-- ❌ File upload vulnerabilities
+### Frontend (`frontend/.env`)
 
-**DO NOT deploy publicly without addressing these issues.**
-
-See [IMPROVEMENT_RECOMMENDATIONS.md](docs/IMPROVEMENT_RECOMMENDATIONS.md) for detailed security fixes.
-
----
-
-## 🚀 Features
-
-### Public Features
-
-✅ **Interactive Map**
-- 386 plaque markers with tooltips
-- Zoom and pan controls
-- Responsive design (mobile-friendly)
-
-✅ **Search & Filter**
-- Real-time search (title, description, address)
-- Category filtering with bulk actions
-- Hamburger menu sidebar
-
-✅ **Image Lightbox**
-- Full-screen image viewer
-- Keyboard navigation (arrows, escape)
-- Image captions
-
-✅ **Geolocation**
-- "Find Near Me" button
-- Blue dot marker for user location
-- Auto-zoom to nearby plaques
-
-### Admin Features
-
-⚠️ **Requires Authentication** (currently insecure)
-
-✅ **Add New Plaques**
-- Camera capture (mobile-friendly)
-- Form with title, description, address, categories
-- Auto-detect GPS coordinates
-
-✅ **Reposition Plaques**
-- Drag markers to correct locations
-- Confirm before saving
-
-✅ **Review Reports**
-- Users can flag plaques for review
-- Admin queries database for flagged items
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `VITE_API_URL` | Yes | Backend API URL (default: `http://localhost:8000/api/v1`) |
+| `VITE_SUPABASE_URL` | No | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | No | Supabase anon key |
 
 ---
 
-## 📊 Project Stats
+## API Endpoints
 
-- **Plaques**: 386
-- **Images**: 1,157
-- **Categories**: 20+
-- **Database Size**: 905KB
-- **API Response**: ~200KB JSON
-- **Code**: 23KB HTML (monolithic)
+### Public
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/v1/plaques` | List plaques (paginated, searchable, filterable) |
+| `GET` | `/api/v1/plaques/{id}` | Get single plaque with images and categories |
+| `GET` | `/api/v1/plaques/nearby?lat=&lng=&radius=` | Find plaques within radius (meters) |
+| `GET` | `/api/v1/categories` | List categories with plaque counts |
+| `GET` | `/api/v1/categories/{id}` | Get single category with plaque count |
+| `GET` | `/health` | Health check |
+
+### Admin (requires JWT auth)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/auth/login` | Login, returns JWT token |
+| `POST` | `/api/v1/plaques` | Create plaque |
+| `PUT` | `/api/v1/plaques/{id}` | Update plaque |
+| `DELETE` | `/api/v1/plaques/{id}` | Delete plaque |
+| `POST` | `/api/v1/images/plaques/{id}/images` | Upload image |
+| `DELETE` | `/api/v1/images/{id}` | Delete image |
+
+### Query Parameters for `GET /api/v1/plaques`
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `page` | int | 1 | Page number |
+| `page_size` | int | 50 | Results per page (max 1000) |
+| `search` | string | — | Search title, description, address |
+| `category_ids` | string | — | Comma-separated category IDs to filter by |
 
 ---
 
-## 🛠️ Development
-
-### Project Structure
+## Project Structure
 
 ```
 blue_plaques/
-├── server.py              # Flask backend
-├── index.html             # Frontend (monolithic)
-├── favicon.svg            # App icon
-├── requirements.txt       # Python dependencies
-├── render.yaml           # Deployment config
-├── blue_plaques.db       # SQLite database
-├── static/
-│   ├── images/           # 370 plaque images
-│   └── uploads/          # User-uploaded images
-├── docs/                 # Documentation (BMAD analysis)
-│   ├── PROJECT_SUMMARY.md
-│   ├── USER_GUIDE.md
-│   ├── ADMIN_GUIDE.md
-│   ├── API_DOCUMENTATION.md
-│   ├── TECHNICAL_ARCHITECTURE.md
-│   └── IMPROVEMENT_RECOMMENDATIONS.md
-└── venv/                 # Python virtual environment
+├── backend/
+│   ├── app/
+│   │   ├── main.py              # FastAPI app entry point
+│   │   ├── config.py            # Pydantic settings
+│   │   ├── database.py          # Supabase client init
+│   │   ├── api/
+│   │   │   ├── deps.py          # Auth dependencies
+│   │   │   └── v1/
+│   │   │       ├── plaques.py   # Plaque CRUD + search + nearby
+│   │   │       ├── categories.py
+│   │   │       ├── images.py
+│   │   │       └── auth.py
+│   │   ├── schemas/             # Pydantic request/response models
+│   │   ├── core/security.py     # JWT + password hashing
+│   │   ├── middleware/           # Rate limiting
+│   │   └── services/storage.py  # Local image storage
+│   ├── tests/                   # Pytest test suite
+│   ├── requirements.txt
+│   ├── .env.example
+│   └── Dockerfile
+├── frontend/
+│   ├── src/
+│   │   ├── App.tsx
+│   │   ├── components/          # Map, Search, Plaque, Gallery, Admin
+│   │   ├── services/api.ts      # Axios API client
+│   │   ├── stores/              # Zustand stores
+│   │   ├── hooks/
+│   │   └── types/
+│   ├── package.json
+│   ├── .env.example
+│   └── vite.config.ts
+└── docker-compose.yml           # Backend + Frontend + Redis
 ```
-
-### API Endpoints
-
-**Public**:
-- `GET /` - Main application
-- `GET /api/plaques` - All plaques (JSON)
-- `GET /static/<path>` - Static files
-
-**Admin** (⚠️ no auth):
-- `POST /api/plaques/<id>/report` - Flag for review
-- `PUT /api/plaques/<id>/position` - Update location
-- `POST /api/plaques` - Add new plaque
-
-See [API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) for details.
 
 ---
 
-## 🧪 Testing
+## Database
 
-**Current State**: ❌ No tests
+The app connects to Supabase via the PostgREST API (HTTPS) using the [Supabase Python client](https://github.com/supabase-community/supabase-py). No direct PostgreSQL connection is required.
 
-**Recommended**:
+### Tables
+
+| Table | Description |
+|-------|-------------|
+| `plaques` | 386 heritage plaques with coordinates, descriptions |
+| `images` | 1,157 plaque images with captions and display order |
+| `categories` | 104 categories (e.g. Churches, Military, Homes) |
+| `plaque_categories` | Many-to-many junction table |
+| `users` | Admin users for authenticated operations |
+
+### RLS Policies
+
+- Public read access on `plaques`, `images`, `categories`, `plaque_categories`
+- Users table restricted to authenticated users reading their own record
+
+### RPC Functions
+
+- `nearby_plaques(lat, lng, radius_m)` — Haversine distance search returning plaques within radius
+
+---
+
+## Data
+
+- **386** heritage blue plaques across Johannesburg
+- **1,157** images sourced from the [Heritage Portal](https://heritageportal.co.za)
+- **104** categories
+- Original data migrated from SQLite (`blue_plaques.db` kept as backup)
+
+---
+
+## Testing
+
 ```bash
-# Install test dependencies
-pip install pytest playwright
-
-# Run unit tests
-pytest tests/
-
-# Run E2E tests
-playwright test
+cd backend
+source venv/bin/activate
+python -m pytest tests/ -v
 ```
-
-See [IMPROVEMENT_RECOMMENDATIONS.md](docs/IMPROVEMENT_RECOMMENDATIONS.md) for test examples.
 
 ---
 
-## 🚢 Deployment
-
-### Development
-
-```bash
-export DEBUG=True
-python server.py
-```
-
-### Production (Current - Not Recommended)
-
-```bash
-python server.py  # Uses Flask dev server
-```
-
-### Production (Recommended)
-
-```bash
-# Install Gunicorn
-pip install gunicorn
-
-# Run with 4 workers
-gunicorn -w 4 -b 0.0.0.0:5000 server:app
-```
-
-**⚠️ Before deploying**:
-1. Fix security vulnerabilities
-2. Set up HTTPS
-3. Configure reverse proxy (Nginx)
-4. Set up monitoring
-5. Implement backups
-
-See [TECHNICAL_ARCHITECTURE.md](docs/TECHNICAL_ARCHITECTURE.md) for deployment guide.
-
----
-
-## 📈 Roadmap
-
-### Phase 1: Security (Week 1) - CRITICAL
-
-- [ ] Implement server-side authentication
-- [ ] Add input validation
-- [ ] Secure file uploads
-- [ ] Add rate limiting
-
-### Phase 2: UX (Week 2)
-
-- [ ] Add loading states
-- [ ] Implement empty states
-- [ ] Add marker clustering
-- [ ] Improve mobile experience
-
-### Phase 3: Code Quality (Week 3)
-
-- [ ] Split monolithic HTML
-- [ ] Add unit tests
-- [ ] Add E2E tests
-- [ ] Set up CI/CD
-
-### Phase 4: Performance (Week 4)
-
-- [ ] Optimize images
-- [ ] Implement caching
-- [ ] Add CDN
-- [ ] Load testing
-
-### Phase 5: Features (Week 5+)
-
-- [ ] Share links
-- [ ] Advanced search
-- [ ] Offline support
-- [ ] User favorites
-
-See [IMPROVEMENT_RECOMMENDATIONS.md](docs/IMPROVEMENT_RECOMMENDATIONS.md) for detailed roadmap.
-
----
-
-## 🤝 Contributing
-
-**Current State**: No contribution guidelines
-
-**Recommended**:
-1. Fork repository
-2. Create feature branch
-3. Make changes with tests
-4. Submit pull request
-
-See [ADMIN_GUIDE.md](docs/ADMIN_GUIDE.md) for content guidelines.
-
----
-
-## 📝 License
+## License
 
 [License information to be added]
-
----
-
-## 🙏 Credits
-
-### Data Source
-- [Heritage Portal](https://heritageportal.co.za) - Plaque information and images
-
-### Technology
-- [Leaflet.js](https://leafletjs.com) - Interactive maps
-- [OpenStreetMap](https://www.openstreetmap.org) - Map tiles
-- [Flask](https://flask.palletsprojects.com) - Web framework
-
-### Analysis
-- **BMAD Team** - Comprehensive project analysis and documentation
-  - BMad Master (Orchestration)
-  - Winston (Architecture)
-  - Sally (UX Design)
-  - Amelia (Development)
-  - Mary (Business Analysis)
-  - John (Product Management)
-  - Paige (Technical Writing)
-
----
-
-## 📞 Support
-
-**Issues**: Report via GitHub Issues (to be set up)  
-**Questions**: [Contact information to be added]  
-**Documentation**: See `docs/` folder
-
----
-
-## 📊 Project Status
-
-**Version**: 1.0 (Prototype)  
-**Status**: ⚠️ Needs security hardening before production  
-**Last Updated**: March 12, 2026  
-**Next Milestone**: Phase 1 security improvements
-
----
-
-## 🎯 Quick Links
-
-- [View Live Demo](#) (to be deployed)
-- [Report an Issue](#) (to be set up)
-- [Read User Guide](docs/USER_GUIDE.md)
-- [Read Admin Guide](docs/ADMIN_GUIDE.md)
-- [View API Docs](docs/API_DOCUMENTATION.md)
-- [See Roadmap](docs/IMPROVEMENT_RECOMMENDATIONS.md)
-
----
-
-**Built with ❤️ for Johannesburg's heritage community**

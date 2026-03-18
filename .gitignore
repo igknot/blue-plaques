@@ -70,3 +70,9 @@ temp/
 # Docker
 .dockerignore
 docker-compose.override.yml
+
+# Kiro local settings
+.kiro/settings/
+
+# Scratch files
+test_redis.py
