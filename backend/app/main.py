@@ -30,7 +30,6 @@ app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 # CORS
 allowed_origins = ["*"] if settings.DEBUG else [
     "https://blueplaques.co.za",
-    "https://blue-plaques.onrender.com"
 ]
 app.add_middleware(
     CORSMiddleware,
