@@ -14,6 +14,12 @@ Interactive web application for discovering and exploring Johannesburg's 386 her
 
 ---
 
+## Live Demo
+
+**Production**: [https://blue-plaques-philipgottfriedlouw9414-veq034v3.leapcell.dev](https://blue-plaques-philipgottfriedlouw9414-veq034v3.leapcell.dev)
+
+---
+
 ## Quick Start
 
 ### Prerequisites
@@ -93,9 +99,44 @@ The frontend runs on `http://localhost:5173` and proxies API requests to the bac
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `VITE_API_URL` | Yes | Backend API URL (default: `http://localhost:8000/api/v1`) |
+| `VITE_API_URL` | No | Backend API URL (falls back to `/api/v1` for same-origin deployment) |
 | `VITE_SUPABASE_URL` | No | Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | No | Supabase anon key |
+
+---
+
+## Deployment (Leapcell)
+
+The app is deployed on [Leapcell](https://leapcell.io) as a single service. The backend serves both the API and the pre-built frontend static files.
+
+### Leapcell Service Configuration
+
+| Setting | Value |
+|---------|-------|
+| **Runtime** | Python |
+| **Root Directory** | `backend` |
+| **Build Command** | `pip install -r requirements.txt` |
+| **Start Command** | `cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8080` |
+| **Port** | `8080` |
+
+### Environment Variables (set in Leapcell dashboard)
+
+| Variable | Description |
+|----------|-------------|
+| `SUPABASE_URL` | Your Supabase project URL |
+| `SUPABASE_ANON_KEY` | Your Supabase anon/public key |
+| `SECRET_KEY` | JWT signing key (min 32 chars) |
+
+### How Frontend Deploys
+
+The frontend is built locally and committed to `backend/static/frontend/`. The backend serves these files automatically.
+
+1. Edit frontend code in `frontend/src/`
+2. Run `git push` — the pre-push hook rebuilds the frontend into `backend/static/frontend/`
+3. Built files are included in the push
+4. Leapcell redeploys and serves the updated frontend
+
+The frontend uses a relative API path (`/api/v1`) so it works on any domain without configuration.
 
 ---
 
