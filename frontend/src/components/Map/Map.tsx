@@ -49,14 +49,15 @@ export default function Map() {
   });
 
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation([position.coords.latitude, position.coords.longitude]);
-        },
-        (error) => console.log('Location access denied:', error)
-      );
-    }
+    if (!navigator.geolocation) return;
+    const id = navigator.geolocation.watchPosition(
+      (position) => {
+        setUserLocation([position.coords.latitude, position.coords.longitude]);
+      },
+      (error) => console.warn('Geolocation error:', error.code, error.message),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+    );
+    return () => navigator.geolocation.clearWatch(id);
   }, []);
 
   const handleCategoryToggle = (categoryId: number) => {
