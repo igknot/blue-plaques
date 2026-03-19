@@ -296,7 +296,6 @@ export default function Map() {
         </div>
       )}
 
-      {/* Version */}
       <div className={`absolute ${user ? 'bottom-28' : 'bottom-8'} left-4 z-[1000] text-[10px] text-gray-400`}>
         v{import.meta.env.VITE_APP_VERSION || 'dev'}
       </div>
