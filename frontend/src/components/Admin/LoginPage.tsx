@@ -1,20 +1,95 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function LoginPage() {
-  const { loginWithGoogle, isAuthenticated } = useAuthStore();
+  const { loginWithGoogle, loginWithEmail, isAuthenticated, error, clearError } = useAuthStore();
   const navigate = useNavigate();
+  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) navigate('/');
   }, [isAuthenticated, navigate]);
 
+  useEffect(() => {
+    // Clear error when component unmounts or inputs change
+    return () => clearError();
+  }, [clearError]);
+
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) return;
+    
+    setLoading(true);
+    try {
+      await loginWithEmail(email, password);
+      navigate('/');
+    } catch {
+      // Error is handled by the store
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm text-center">
-        <h1 className="text-2xl font-bold mb-2">Blue Plaques</h1>
-        <p className="text-gray-500 mb-6">Sign in to track your plaque visits</p>
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
+        <h1 className="text-2xl font-bold mb-2 text-center">Blue Plaques</h1>
+        <p className="text-gray-500 mb-6 text-center">Sign in to track your plaque visits</p>
+        
+        {/* Email/Password Login Form */}
+        <form onSubmit={handleEmailLogin} className="space-y-4 mb-6">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
+              {error}
+            </div>
+          )}
+          
+          <div>
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+          
+          <div>
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+          
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white rounded-lg px-4 py-3 font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Signing in...' : 'Sign in'}
+          </button>
+        </form>
+
+        {/* Divider */}
+        <div className="relative mb-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-gray-500">or</span>
+          </div>
+        </div>
+
+        {/* Google OAuth Button */}
         <button
           onClick={loginWithGoogle}
           className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-700 font-medium hover:bg-gray-50 transition"
@@ -27,7 +102,8 @@ export default function LoginPage() {
           </svg>
           Sign in with Google
         </button>
-        <button onClick={() => navigate('/')} className="mt-4 text-sm text-gray-500 hover:underline">
+        
+        <button onClick={() => navigate('/')} className="mt-4 w-full text-sm text-gray-500 hover:underline">
           ← Back to map
         </button>
       </div>

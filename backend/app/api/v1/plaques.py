@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import List, Optional
-from ...database import supabase
+from ...database import supabase, supabase_admin
 from ...schemas import PlaqueResponse, PlaqueListResponse, PlaqueCreate, PlaqueUpdate
 from ...api.deps import get_admin_user
 
@@ -84,12 +84,12 @@ def get_plaque(plaque_id: int):
 @router.post("", response_model=PlaqueResponse)
 def create_plaque(plaque_data: PlaqueCreate, current_user=Depends(get_admin_user)):
     data = plaque_data.dict(exclude={"category_ids"})
-    resp = supabase.table("plaques").insert(data).execute()
+    resp = supabase_admin.table("plaques").insert(data).execute()
     plaque = resp.data[0]
 
     if plaque_data.category_ids:
         links = [{"plaque_id": plaque["id"], "category_id": cid} for cid in plaque_data.category_ids]
-        supabase.table("plaque_categories").insert(links).execute()
+        supabase_admin.table("plaque_categories").insert(links).execute()
 
     return get_plaque(plaque["id"])
 
@@ -102,13 +102,13 @@ def update_plaque(plaque_id: int, plaque_data: PlaqueUpdate, current_user=Depend
 
     update_data = plaque_data.dict(exclude_unset=True, exclude={"category_ids"})
     if update_data:
-        supabase.table("plaques").update(update_data).eq("id", plaque_id).execute()
+        supabase_admin.table("plaques").update(update_data).eq("id", plaque_id).execute()
 
     if plaque_data.category_ids is not None:
-        supabase.table("plaque_categories").delete().eq("plaque_id", plaque_id).execute()
+        supabase_admin.table("plaque_categories").delete().eq("plaque_id", plaque_id).execute()
         if plaque_data.category_ids:
             links = [{"plaque_id": plaque_id, "category_id": cid} for cid in plaque_data.category_ids]
-            supabase.table("plaque_categories").insert(links).execute()
+            supabase_admin.table("plaque_categories").insert(links).execute()
 
     return get_plaque(plaque_id)
 
@@ -118,5 +118,5 @@ def delete_plaque(plaque_id: int, current_user=Depends(get_admin_user)):
     existing = supabase.table("plaques").select("id").eq("id", plaque_id).single().execute()
     if not existing.data:
         raise HTTPException(status_code=404, detail="Plaque not found")
-    supabase.table("plaques").delete().eq("id", plaque_id).execute()
+    supabase_admin.table("plaques").delete().eq("id", plaque_id).execute()
     return {"message": "Plaque deleted"}

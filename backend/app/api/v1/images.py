@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from ...database import supabase
+from ...database import supabase, supabase_admin
 from ...schemas import ImageResponse
 from ...services.storage import upload_image, delete_image
 from ...api.deps import get_admin_user
@@ -39,7 +39,7 @@ async def upload_plaque_image(
         "year_taken": year_taken,
         "display_order": display_order,
     }
-    result = supabase.table("images").insert(row).execute()
+    result = supabase_admin.table("images").insert(row).execute()
     return result.data[0]
 
 
@@ -51,5 +51,5 @@ def delete_plaque_image(image_id: int, current_user=Depends(get_admin_user)):
     image = response.data[0]
     filename = image["url"].split("/")[-1]
     delete_image(filename)
-    supabase.table("images").delete().eq("id", image_id).execute()
+    supabase_admin.table("images").delete().eq("id", image_id).execute()
     return {"message": "Image deleted"}

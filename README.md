@@ -16,8 +16,7 @@ Interactive web application for discovering and exploring Johannesburg's 386 her
 
 ## Live Demo
 
-**Production**: [https://blue-plaques-philipgottfriedlouw9414-veq034v3.leapcell.dev](https://blue-plaques-philipgottfriedlouw9414-veq034v3.leapcell.dev)
-
+**Production**: [https://blueplaques.leapcell.app](https://blueplaques.leapcell.app)
 ---
 
 ## Quick Start
@@ -38,6 +37,9 @@ cp backend/.env.example backend/.env
 
 # Start all services
 docker compose up -d
+
+# Rebuild and Start all services
+docker compose up -d --build --remove-orphans
 ```
 
 Backend runs on `http://localhost:8000`, frontend on `http://localhost:5173`.
