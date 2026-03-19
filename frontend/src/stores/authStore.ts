@@ -6,6 +6,7 @@ import type { User } from '@supabase/supabase-js';
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   loading: boolean;
   error: string | null;
   init: () => Promise<void>;
@@ -15,9 +16,16 @@ interface AuthState {
   clearError: () => void;
 }
 
+function parseJwtClaims(token: string): Record<string, unknown> | null {
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } catch { return null; }
+}
+
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
+  isAdmin: false,
   loading: true,
   error: null,
 
@@ -25,7 +33,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     // Check for existing JWT token from email login
     const token = localStorage.getItem('token');
     if (token) {
-      set({ isAuthenticated: true, loading: false });
+      const claims = parseJwtClaims(token);
+      set({ isAuthenticated: true, isAdmin: !!claims?.is_admin, loading: false });
       return;
     }
 
@@ -51,7 +60,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       const response = await authApi.login(email, password);
       const { access_token } = response.data;
       localStorage.setItem('token', access_token);
-      set({ isAuthenticated: true, error: null });
+      const claims = parseJwtClaims(access_token);
+      set({ isAuthenticated: true, isAdmin: !!claims?.is_admin, error: null });
     } catch (err: any) {
       const message = err.response?.data?.detail || 'Login failed. Please check your credentials.';
       set({ error: message });
@@ -64,7 +74,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.removeItem('token');
     // Also sign out from Supabase (for Google OAuth users)
     await supabase.auth.signOut();
-    set({ user: null, isAuthenticated: false });
+    set({ user: null, isAuthenticated: false, isAdmin: false });
   },
 
   clearError: () => {

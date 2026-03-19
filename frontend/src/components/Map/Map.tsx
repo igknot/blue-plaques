@@ -132,7 +132,7 @@ export default function Map() {
   const [pendingMove, setPendingMove] = useState<{ plaque: Plaque; lat: number; lng: number } | null>(null);
   const markerRefs = useRef(new window.Map<number, L.Marker>());
   const { center, zoom } = useMapStore();
-  const { user, isAuthenticated, logout, init } = useAuthStore();
+  const { user, isAuthenticated, isAdmin, logout, init } = useAuthStore();
   const { visitedIds, favoriteIds, fetchUserPlaques, clear } = useUserPlaqueStore();
 
   // Init auth on mount
@@ -219,7 +219,7 @@ export default function Map() {
                 <button onClick={() => navigate(`/plaque/${plaque.id}`)} className="text-blue-600 hover:underline text-sm">
                   View Details →
                 </button>
-                {isAuthenticated && userLocation && (
+                {isAdmin && userLocation && (
                   <button
                     onClick={() => setPendingMove({ plaque, lat: userLocation[0], lng: userLocation[1] })}
                     className="text-orange-600 hover:underline text-sm"
@@ -234,7 +234,7 @@ export default function Map() {
         </>
       );
 
-      if (isAuthenticated) {
+      if (isAdmin) {
         return (
           <DraggableMarker key={plaque.id} plaque={plaque} icon={icon} markerRefs={markerRefs} onDragEnd={(lat, lng) => setPendingMove({ plaque, lat, lng })}>
             {popupContent}
@@ -247,7 +247,7 @@ export default function Map() {
         </Marker>
       );
     });
-  }, [data?.plaques, navigate, isAuthenticated, userLocation, getIcon]);
+  }, [data?.plaques, navigate, isAdmin, userLocation, getIcon]);
 
   if (isLoading) return (
     <div className="flex items-center justify-center h-screen">

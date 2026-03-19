@@ -19,7 +19,7 @@ def login(user_data: UserLogin):
     if not user["is_active"]:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user")
     access_token = create_access_token(
-        data={"sub": user["email"]},
+        data={"sub": user["email"], "is_admin": bool(user.get("is_admin"))},
         expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
     )
     return {"access_token": access_token, "token_type": "bearer"}
