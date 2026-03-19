@@ -295,7 +295,11 @@ export default function Map() {
           <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-orange-600 inline-block"></span> Want to visit</div>
         </div>
       )}
-      
+
+      {/* Version */}
+      <div className={`absolute ${user ? 'bottom-28' : 'bottom-8'} left-4 z-[1000] text-[10px] text-gray-400`}>
+        v{import.meta.env.VITE_APP_VERSION || 'dev'}
+      </div>
       <MapContainer center={center} zoom={zoom} className="h-full w-full" zoomControl={false}>
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
