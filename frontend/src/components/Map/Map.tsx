@@ -127,7 +127,7 @@ export default function Map() {
       />
       <button
         onClick={() => isAuthenticated ? logout() : navigate('/login')}
-        className="absolute top-4 right-4 z-[1000] bg-white px-3 py-1.5 rounded shadow text-sm font-medium hover:bg-gray-50"
+        className="absolute top-4 right-16 z-[1000] bg-white px-3 py-1.5 rounded shadow text-sm font-medium hover:bg-gray-50"
       >
         {isAuthenticated ? 'Logout' : 'Admin'}
       </button>
