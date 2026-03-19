@@ -5,4 +5,6 @@ from .config import settings
 supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_ANON_KEY)
 
 # Admin client (service role key) - bypasses RLS, used for authenticated write operations
-supabase_admin: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY) if settings.SUPABASE_SERVICE_ROLE_KEY else supabase
+if not settings.SUPABASE_SERVICE_ROLE_KEY:
+    raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY is required for admin operations")
+supabase_admin: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY)
