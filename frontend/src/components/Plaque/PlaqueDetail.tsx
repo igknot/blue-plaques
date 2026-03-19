@@ -1,12 +1,16 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { usePlaque } from '../../hooks/usePlaques';
+import { useAuthStore } from '../../stores/authStore';
+import { useUserPlaqueStore } from '../../stores/userPlaqueStore';
 import Lightbox from '../Gallery/Lightbox';
 
 export default function PlaqueDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: plaque, isLoading, error } = usePlaque(Number(id));
+  const { user } = useAuthStore();
+  const { visitedIds, favoriteIds, toggleVisited, toggleFavorite } = useUserPlaqueStore();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
@@ -59,6 +63,23 @@ export default function PlaqueDetail() {
 
           <div className="p-6">
             <h1 className="text-3xl font-bold text-gray-900 mb-4">{plaque.title}</h1>
+
+            {user && (
+              <div className="flex gap-3 mb-4">
+                <button
+                  onClick={() => toggleVisited(user.id, plaque.id)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${visitedIds.has(plaque.id) ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-green-50'}`}
+                >
+                  {visitedIds.has(plaque.id) ? '✓ Visited' : 'Mark as Visited'}
+                </button>
+                <button
+                  onClick={() => toggleFavorite(user.id, plaque.id)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium ${favoriteIds.has(plaque.id) ? 'bg-orange-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-orange-50'}`}
+                >
+                  {favoriteIds.has(plaque.id) ? '★ Want to Visit' : '☆ Want to Visit'}
+                </button>
+              </div>
+            )}
 
             {plaque.address && (
               <div className="flex items-start mb-4 text-gray-600">
