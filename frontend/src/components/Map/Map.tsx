@@ -132,7 +132,7 @@ export default function Map() {
   const [pendingMove, setPendingMove] = useState<{ plaque: Plaque; lat: number; lng: number } | null>(null);
   const markerRefs = useRef(new window.Map<number, L.Marker>());
   const { center, zoom } = useMapStore();
-  const { user, isAuthenticated, logout, loginWithGoogle, init } = useAuthStore();
+  const { user, isAuthenticated, logout, init } = useAuthStore();
   const { visitedIds, favoriteIds, fetchUserPlaques, clear } = useUserPlaqueStore();
 
   // Init auth on mount
@@ -280,7 +280,7 @@ export default function Map() {
           </div>
         )}
         <button
-          onClick={() => isAuthenticated ? logout() : loginWithGoogle()}
+          onClick={() => isAuthenticated ? logout() : navigate('/login')}
           className="bg-white px-3 py-1.5 rounded shadow text-sm font-medium hover:bg-gray-50"
         >
           {isAuthenticated ? 'Logout' : 'Login'}
