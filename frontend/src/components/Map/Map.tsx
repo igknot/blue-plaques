@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { usePlaques } from '../../hooks/usePlaques';
 import { useMapStore } from '../../stores/mapStore';
+import { useAuthStore } from '../../stores/authStore';
 import SearchBar from '../Search/SearchBar';
 import FilterPanel from '../Search/FilterPanel';
 import api from '../../services/api';
@@ -36,6 +37,7 @@ export default function Map() {
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const { center, zoom } = useMapStore();
+  const { isAuthenticated, logout } = useAuthStore();
   
   const { data, isLoading } = usePlaques({
     page_size: 1000,
@@ -123,6 +125,12 @@ export default function Map() {
         onClearAll={handleClearAll}
         onSelectAll={handleSelectAll}
       />
+      <button
+        onClick={() => isAuthenticated ? logout() : navigate('/login')}
+        className="absolute top-4 right-4 z-[1000] bg-white px-3 py-1.5 rounded shadow text-sm font-medium hover:bg-gray-50"
+      >
+        {isAuthenticated ? 'Logout' : 'Admin'}
+      </button>
       
       <MapContainer
         center={center}

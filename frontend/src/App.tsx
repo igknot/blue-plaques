@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ErrorBoundary from './components/ErrorBoundary';
 import Map from './components/Map/Map';
 import PlaqueDetail from './components/Plaque/PlaqueDetail';
+import LoginPage from './components/Admin/LoginPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,6 +22,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Map />} />
             <Route path="/plaque/:id" element={<PlaqueDetail />} />
+            <Route path="/login" element={<LoginPage />} />
           </Routes>
         </BrowserRouter>
       </QueryClientProvider>
